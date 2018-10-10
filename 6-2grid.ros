@@ -1,0 +1,48 @@
+#!/bin/sh
+#|-*- mode:lisp -*-|#
+#|
+exec ros -Q -- $0 "$@"
+|#
+(progn ;;init forms
+  (ros:ensure-asdf)
+  #+quicklisp(ql:quickload '(:cl-gobject-introspection) :silent t)
+  )
+
+(defpackage :ros.script.6-2grid.3748137221
+  (:use :cl))
+(in-package :ros.script.6-2grid.3748137221)
+
+(defvar gtk nil)
+
+(defun gridwindow ()
+  (let ((self (gir:invoke (gtk "Window" "new") (gir:nget gtk "WindowType" :toplevel)))
+        (grid (gir:invoke (gtk "Grid" "new")))
+        (button1 (gir:invoke (gtk "Button" "new_with_label") "button1"))
+        (button2 (gir:invoke (gtk "Button" "new_with_label") "button2"))
+        (button3 (gir:invoke (gtk "Button" "new_with_label") "button3"))
+        (button4 (gir:invoke (gtk "Button" "new_with_label") "button4"))
+        (button5 (gir:invoke (gtk "Button" "new_with_label") "button5"))
+        (button6 (gir:invoke (gtk "Button" "new_with_label") "button6")))
+    (gir:invoke (self "set_title") "Grid Example")
+    (gir:invoke (self "add") grid)
+    (gir:invoke (grid "add") button1)
+    (gir:invoke (grid "attach") button2 1 0 2 1)
+    (gir:invoke (grid "attach_next_to") button3 button1 (gir:nget gtk "PositionType" :bottom) 1 2)
+    (gir:invoke (grid "attach_next_to") button4 button3 (gir:nget gtk "PositionType" :right) 2 1)
+    (gir:invoke (grid "attach") button5 1 2 1 1)
+    (gir:invoke (grid "attach_next_to") button6 button5 (gir:nget gtk "PositionType" :right) 1 1)
+    self))
+
+(defun main (&rest argv)
+  (declare (ignorable argv))
+  (let* ((gtk (let ((g (gir:require-namespace "Gtk" "3.0")))
+                (gir:invoke (g "init") nil)
+                g))
+         (win (gridwindow)))
+    (gir:connect win "destroy" 
+                 (lambda (&rest r)
+                   (declare (ignore r))
+                   (gir:invoke (gtk "main_quit"))))
+    (gir:invoke (win "show_all"))
+    (gir:invoke (gtk "main"))))
+;;; vim: set ft=lisp lisp:
