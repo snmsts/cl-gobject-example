@@ -1,0 +1,30 @@
+#!/bin/sh
+#|-*- mode:lisp -*-|#
+#|
+exec ros -Q -- $0 "$@"
+|#
+(progn ;;init forms
+  (ros:ensure-asdf)
+  #+quicklisp(ql:quickload '(:cl-gobject-introspection) :silent t)
+  )
+
+(defpackage :ros.script.2-1simple.3748124299
+  (:use :cl))
+(in-package :ros.script.2-1simple.3748124299)
+
+(defvar gtk nil)
+
+(defun main (&rest argv)
+  (declare (ignorable argv))
+  (let* ((gtk (let ((g (gir:require-namespace "Gtk" "3.0")))
+                (gir:invoke (g "init") nil)
+                g))
+         (win (gir:invoke (gtk "Window" "new") (gir:nget gtk "WindowType" :toplevel))))
+    (gir:connect win "destroy" 
+                 (lambda (&rest r)
+                   (declare (ignore r))
+                   (gir:invoke (gtk "main_quit"))))
+    (gir:invoke (win "show_all"))
+    (gir:invoke (gtk "main"))))
+
+;;; vim: set ft=lisp lisp:

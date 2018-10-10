@@ -1,0 +1,53 @@
+#!/bin/sh
+#|-*- mode:lisp -*-|#
+#|
+exec ros -Q -- $0 "$@"
+|#
+(progn ;;init forms
+  (ros:ensure-asdf)
+  #+quicklisp(ql:quickload '(:cl-gobject-introspection) :silent t)
+  )
+
+(defpackage :ros.script.6-1boxes.3748134106
+  (:use :cl))
+(in-package :ros.script.6-1boxes.3748134106)
+
+(defvar gtk nil)
+
+
+(defun mywindow ()
+  (let ((self (gir:invoke (gtk "Window" "new") (gir:nget gtk "WindowType" :toplevel)))
+        (box (gir:invoke (gtk "Box" "new")
+                         (gir:nget gtk "Orientation" :horizontal)
+                         6))
+        (button1 (gir:invoke (gtk "Button" "new_with_label") "Hello"))
+        (button2 (gir:invoke (gtk "Button" "new_with_label") "Good bye")))
+    (gir:invoke (self "set_title") "Hello World")
+    (gir:invoke (self "add") box)
+    (gir:connect button1 "clicked"
+                 (lambda (&rest r)
+                   (declare (ignore r))
+                   (format t "Hello~%")
+                   (force-output)))
+    (gir:invoke (box "pack_start") button1 t t 0)
+    (gir:connect button2 "clicked"
+                 (lambda (&rest r)
+                   (declare (ignore r))
+                   (format t "Good bye~%")
+                   (force-output)))
+    (gir:invoke (box "pack_start") button2 t t 0)
+    self))
+
+(defun main (&rest argv)
+  (declare (ignorable argv))
+  (let* ((gtk (let ((g (gir:require-namespace "Gtk" "3.0")))
+                (gir:invoke (g "init") nil)
+                g))
+         (win (mywindow)))
+    (gir:connect win "destroy" 
+                 (lambda (&rest r)
+                   (declare (ignore r))
+                   (gir:invoke (gtk "main_quit"))))
+    (gir:invoke (win "show_all"))
+    (gir:invoke (gtk "main"))))
+;;; vim: set ft=lisp lisp:
